@@ -1,0 +1,61 @@
+import mongoose, { Schema, Document } from "mongoose";
+
+export interface IAddress {
+  fullName: string;
+  phone: string;
+  country: string;
+  city: string;
+  street: string;
+  zip: string;
+  isDefault?: boolean;
+}
+
+export interface IUser extends Document {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  addresses: IAddress[];
+  wishlist: string[];
+  recentlyViewed: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const AddressSchema = new Schema<IAddress>({
+  fullName: { type: String, required: true },
+  phone: { type: String, required: true },
+  country: { type: String, required: true },
+  city: { type: String, required: true },
+  street: { type: String, required: true },
+  zip: { type: String, required: true },
+  isDefault: { type: Boolean, default: false }
+}, { _id: false });
+
+const UserSchema = new Schema<IUser>(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true, lowercase: true, index: true },
+    password: { type: String, required: true },
+    phone: { type: String },
+    addresses: { type: [AddressSchema], default: [] },
+    wishlist: { type: [String], default: [] },
+    recentlyViewed: { type: [String], default: [] }
+  },
+  {
+    timestamps: true,
+    toJSON: {
+      transform: (_doc, ret) => {
+        ret.id = ret._id.toString();
+        delete ret._id;
+        delete ret.__v;
+        delete ret.password;
+        return ret;
+      }
+    }
+  }
+);
+
+export const User = mongoose.model<IUser>("User", UserSchema);
+
