@@ -6,7 +6,6 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY tsconfig.json ./
 
 # Install dependencies
 RUN npm install
@@ -14,8 +13,8 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Install tsx for TypeScript execution
+RUN npm install -g tsx
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs
@@ -34,7 +33,7 @@ ENV PORT=8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080/api/ping', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  CMD node -e "require('http').get('http://localhost:8080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the application
-CMD ["node", "dist/production.mjs"]
+CMD ["tsx", "production.ts"]
