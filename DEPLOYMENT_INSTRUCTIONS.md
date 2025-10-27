@@ -78,9 +78,9 @@ Render will automatically:
 
 ### **After Deployment**
 
-1. **Check Service URL**: `https://fas-back.onrender.com`
-2. **Test Health Check**: `https://fas-back.onrender.com/health`
-3. **Test API**: `https://fas-back.onrender.com/api/products`
+1. **Check Service URL**: `https://api.faskids.shop`
+2. **Test Health Check**: `https://api.faskids.shop/health`
+3. **Test API**: `https://api.faskids.shop/api/products`
 
 ### **Expected Response**
 ```json
@@ -115,10 +115,10 @@ Render will automatically:
 
 ```bash
 # Test health endpoint
-curl https://fas-back.onrender.com/health
+curl https://api.faskids.shop/health
 
 # Test API endpoint
-curl https://fas-back.onrender.com/api/products
+curl https://api.faskids.shop/api/products
 
 # Check service logs in Render dashboard
 ```
@@ -193,4 +193,4 @@ If you encounter any issues:
 3. Test endpoints manually
 4. Review this documentation
 
-**Your backend will be available at**: `https://fas-back.onrender.com`
+**Your backend will be available at**: `https://api.faskids.shop`

@@ -67,7 +67,7 @@ CLIENT_URL=https://faskids.shop
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 
 # API
-API_BASE_URL=https://fas-back.onrender.com/api
+API_BASE_URL=https://api.faskids.shop
 ```
 
 ### **Step 4: Build Settings**
@@ -107,17 +107,17 @@ API_BASE_URL=https://fas-back.onrender.com/api
 
 ### **After Deployment**
 
-1. **Check Service URL**: `https://fas-back.onrender.com`
+1. **Check Service URL**: `https://api.faskids.shop`
 2. **Test API Endpoints**:
    ```bash
    # Health check
-   curl https://fas-back.onrender.com/api/ping
+   curl https://api.faskids.shop/health
    
    # Products
-   curl https://fas-back.onrender.com/api/products
+   curl https://api.faskids.shop/api/products
    
    # Categories
-   curl https://fas-back.onrender.com/api/categories
+   curl https://api.faskids.shop/api/categories
    ```
 
 3. **Check Logs**: In Render dashboard → Logs
@@ -146,10 +146,10 @@ API_BASE_URL=https://fas-back.onrender.com/api
 
 ```bash
 # Check if service is running
-curl -I https://fas-back.onrender.com/api/ping
+curl -I https://api.faskids.shop/health
 
 # Test database connection
-curl https://fas-back.onrender.com/api/products
+curl https://api.faskids.shop/api/products
 
 # Check service logs in Render dashboard
 ```
@@ -181,7 +181,7 @@ curl https://fas-back.onrender.com/api/products
 ## 🚀 **Next Steps**
 
 1. **Deploy to Render**: Follow the setup steps above
-2. **Update Frontend**: Point API calls to `https://fas-back.onrender.com/api`
+2. **Update Frontend**: Point API calls to `https://api.faskids.shop`
 3. **Test Everything**: Verify all endpoints work
 4. **Monitor**: Check logs and performance
 
@@ -197,7 +197,7 @@ curl https://fas-back.onrender.com/api/products
 | `DOMAIN` | `faskids.shop` | Your domain |
 | `CLIENT_URL` | `https://faskids.shop` | Frontend URL |
 | `JWT_SECRET` | Random string | JWT signing key |
-| `API_BASE_URL` | `https://fas-back.onrender.com/api` | API base URL |
+| `API_BASE_URL` | `https://api.faskids.shop` | API base URL |
 
 ---
 

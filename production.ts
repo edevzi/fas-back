@@ -1,15 +1,7 @@
-import express from 'express';
-import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 // Load environment variables
 dotenv.config();
-
-// Get __dirname equivalent for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Import server setup
 import connectDatabase from './config/database.js';
@@ -21,18 +13,14 @@ const port = process.env.PORT || 8080;
 // Connect to database
 connectDatabase();
 
-// In production, serve static files if needed
-if (process.env.NODE_ENV === 'production') {
-  // Serve any static files from public directory
-  app.use(express.static(path.join(__dirname, 'public')));
-}
-
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    apiUrl: `https://api.faskids.shop`
   });
 });
 
@@ -40,7 +28,8 @@ app.get('/health', (req, res) => {
 app.listen(port, () => {
   console.log(`🚀 FasKids Backend running on port ${port}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔧 API: http://localhost:${port}/api`);
+  console.log(`🌐 API URL: https://api.faskids.shop`);
+  console.log(`🔧 Local API: http://localhost:${port}/api`);
   console.log(`📊 Health: http://localhost:${port}/health`);
 });
 

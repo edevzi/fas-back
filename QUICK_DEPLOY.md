@@ -59,10 +59,10 @@ git push origin main
 ## 🎯 **Service URLs**
 
 After successful deployment:
-- **Main Service**: `https://fas-back.onrender.com`
-- **Health Check**: `https://fas-back.onrender.com/health`
-- **API Docs**: `https://fas-back.onrender.com/api-docs`
-- **Products API**: `https://fas-back.onrender.com/api/products`
+- **Main Service**: `https://api.faskids.shop`
+- **Health Check**: `https://api.faskids.shop/health`
+- **API Docs**: `https://api.faskids.shop/api-docs`
+- **Products API**: `https://api.faskids.shop/api/products`
 
 ---
 

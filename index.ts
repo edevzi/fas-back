@@ -12,7 +12,13 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:8080",
+  origin: [
+    process.env.CLIENT_URL || "http://localhost:8080",
+    "https://faskids.shop",
+    "https://www.faskids.shop",
+    "http://localhost:5173",
+    "http://localhost:3000"
+  ],
   credentials: true
 }));
 app.use(express.json());
