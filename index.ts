@@ -10,7 +10,6 @@ import { getProductComments, createComment, markHelpful } from "./routes/comment
 
 const app = express();
 
-// Middleware
 app.use(cors({
   origin: [
     process.env.CLIENT_URL || "http://localhost:8080",
