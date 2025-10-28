@@ -1,25 +1,3 @@
-import { Schema, model } from "mongoose";
-
-const CommentSchema = new Schema(
-  {
-    productId: { type: String, required: true },
-    userId: { type: String, required: true },
-    userName: { type: String, required: true },
-    userAvatar: String,
-    rating: { type: Number, min: 1, max: 5, required: true },
-    title: { type: String, required: true },
-    content: { type: String, required: true },
-    date: String,
-    verified: { type: Boolean, default: false },
-    helpful: { type: Number, default: 0 },
-    images: [String],
-    size: String,
-    color: String,
-  },
-  { timestamps: true }
-);
-
-export const Comment = model("Comment", CommentSchema);
 
 import mongoose, { Schema, Document } from "mongoose";
 

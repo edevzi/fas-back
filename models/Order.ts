@@ -1,55 +1,5 @@
 import { Schema, model } from "mongoose";
 
-const OrderSchema = new Schema(
-  {
-    number: { type: String, required: true, unique: true },
-    userId: { type: String },
-    guest: { type: Boolean, default: false },
-    items: [
-      {
-        productId: String,
-        title: String,
-        sku: String,
-        price: Number,
-        qty: Number,
-        size: String,
-        color: String,
-        image: String,
-      },
-    ],
-    totals: {
-      itemsTotal: Number,
-      deliveryFee: Number,
-      discount: { type: Number, default: 0 },
-      grandTotal: Number,
-    },
-    region: { code: String, name: String },
-    address: { city: String, street: String },
-    contact: { fullName: String, phone: String },
-    delivery: {
-      method: String,
-      fee: Number,
-      etaDays: Number,
-      carrier: String,
-      tracking: String,
-    },
-    payment: {
-      method: String,
-      status: { type: String, default: "awaiting_payment" },
-      intentId: String,
-      paidAt: Date,
-    },
-    status: {
-      type: String,
-      enum: ["awaiting_payment", "paid", "packing", "shipped", "delivered", "canceled"],
-      default: "awaiting_payment",
-    },
-    history: [Schema.Types.Mixed],
-  },
-  { timestamps: true }
-);
-
-export const Order = model("Order", OrderSchema);
 
 import mongoose, { Schema, Document } from "mongoose";
 

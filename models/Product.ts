@@ -1,33 +1,5 @@
-import { Schema, model } from "mongoose";
 
-const ProductSchema = new Schema(
-  {
-    slug: { type: String, required: true, unique: true },
-    title: { type: String, required: true },
-    gender: { type: String, enum: ["boy", "girl", "unisex"], required: true },
-    ageRange: { type: String, enum: ["0-3m", "3-6m", "6-12m", "1-3y", "3-5y", "5-7y", "7-10y"], required: true },
-    categorySlug: { type: String, required: true },
-    price: { type: Number, required: true },
-    oldPrice: Number,
-    colors: [String],
-    sizes: [String],
-    images: [String],
-    rating: Number,
-    reviewCount: Number,
-    available: { type: Boolean, default: true },
-    description: String,
-    material: String,
-    care: String,
-    tags: [String],
-    recommendedProducts: [String],
-    similarProducts: [String],
-  },
-  { timestamps: true }
-);
-
-export const Product = model("Product", ProductSchema);
-
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, model } from "mongoose";
 
 export interface IProduct extends Document {
   id: string;
