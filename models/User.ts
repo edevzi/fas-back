@@ -1,3 +1,31 @@
+import { Schema, model } from "mongoose";
+
+const UserSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    phone: String,
+    role: { type: String, enum: ["admin", "cashier", "user"], default: "user" },
+    addresses: [
+      {
+        fullName: String,
+        phone: String,
+        country: String,
+        city: String,
+        street: String,
+        zip: String,
+        isDefault: Boolean,
+      },
+    ],
+    wishlist: [String],
+    recentlyViewed: [String],
+  },
+  { timestamps: true }
+);
+
+export const User = model("User", UserSchema);
+
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IAddress {

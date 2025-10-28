@@ -149,10 +149,27 @@ app.post("/api/auth/login", login);
 app.get("/api/auth/me", me);
 
 // Orders
-app.post("/api/orders", requireAuth, requireRole("user", "admin", "cashier"), createOrder);
+app.post("/api/orders", createOrder);
 app.get("/api/orders/my", requireAuth, requireRole("user", "admin", "cashier"), getMyOrders);
 app.get("/api/orders", requireAuth, requireRole("admin", "cashier"), adminListOrders);
 app.patch("/api/orders/:orderId/status", requireAuth, requireRole("admin", "cashier"), updateOrderStatus);
+
+// Shipping
+import { getQuote } from "./routes/shipping";
+app.get("/api/shipping/quote", getQuote);
+
+// Payments
+import { createPayme, createClick, paymeWebhook, clickWebhook, returnSuccess, returnFail } from "./routes/payments";
+app.post("/api/payments/payme/create", createPayme);
+app.post("/api/payments/click/create", createClick);
+app.post("/api/payments/payme/webhook", paymeWebhook);
+app.post("/api/payments/click/webhook", clickWebhook);
+app.get("/api/payments/return/success", returnSuccess);
+app.get("/api/payments/return/fail", returnFail);
+
+// Telegram notify
+import { notifyTelegram } from "./routes/notify";
+app.post("/api/notify/telegram", notifyTelegram);
 
 // Swagger JSON endpoint
 app.get("/api-docs.json", (_req, res) => {
