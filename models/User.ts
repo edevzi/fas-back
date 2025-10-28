@@ -16,6 +16,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   phone: string;
+  role: "admin" | "cashier" | "user";
   addresses: IAddress[];
   wishlist: string[];
   recentlyViewed: string[];
@@ -39,6 +40,7 @@ const UserSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true, lowercase: true, index: true },
     password: { type: String, required: true },
     phone: { type: String },
+    role: { type: String, enum: ["admin", "cashier", "user"], default: "user", index: true },
     addresses: { type: [AddressSchema], default: [] },
     wishlist: { type: [String], default: [] },
     recentlyViewed: { type: [String], default: [] }

@@ -7,6 +7,8 @@ import connectDatabase from "./config/database";
 import { getProducts, getProductBySlug } from "./routes/products";
 import { getCategories, getCategoryBySlug } from "./routes/categories";
 import { getProductComments, createComment, markHelpful } from "./routes/comments";
+import { signup, login, me, requireAuth, requireRole } from "./routes/auth";
+import { createOrder, getMyOrders, adminListOrders, updateOrderStatus } from "./routes/orders";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -44,6 +46,13 @@ const swaggerOptions = {
       ]
     },
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT"
+        }
+      },
       schemas: {
         Product: {
           type: "object",
@@ -110,7 +119,7 @@ const swaggerOptions = {
       }
     }
   },
-  apis: ["./server/routes/*.ts", "./server/index.ts"]
+  apis: ["./routes/*.ts", "./index.ts"]
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -147,6 +156,17 @@ app.get("/api/categories/:slug", getCategoryBySlug);
 app.get("/api/products/:productId/comments", getProductComments);
 app.post("/api/products/:productId/comments", createComment);
 app.post("/api/comments/:commentId/helpful", markHelpful);
+
+// Auth
+app.post("/api/auth/signup", signup);
+app.post("/api/auth/login", login);
+app.get("/api/auth/me", me);
+
+// Orders
+app.post("/api/orders", requireAuth, requireRole("user", "admin", "cashier"), createOrder);
+app.get("/api/orders/my", requireAuth, requireRole("user", "admin", "cashier"), getMyOrders);
+app.get("/api/orders", requireAuth, requireRole("admin", "cashier"), adminListOrders);
+app.patch("/api/orders/:orderId/status", requireAuth, requireRole("admin", "cashier"), updateOrderStatus);
 
 // Swagger JSON endpoint
 app.get("/api-docs.json", (_req, res) => {
