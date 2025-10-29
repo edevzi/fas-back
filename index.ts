@@ -9,6 +9,9 @@ import { getCategories, getCategoryBySlug } from "./routes/categories";
 import { getProductComments, createComment, markHelpful, getUserComments } from "./routes/comments";
 import { signup, login, me, requireAuth, requireRole } from "./routes/auth";
 import { createOrder, getMyOrders, adminListOrders, updateOrderStatus } from "./routes/orders";
+import { getAllUsers, createUser, updateUser, deleteUser, getDashboardStats } from "./routes/admin";
+import { createProduct, updateProduct, deleteProduct, createCategory, updateCategory, deleteCategory } from "./routes/adminProducts";
+import { getAllOrders, assignCourier, calculateDelivery, trackOrder } from "./routes/delivery";
 import { User } from "./models/User";
 
 const app = express();
@@ -154,9 +157,9 @@ app.get("/api/auth/me", me);
 
 // Orders
 app.post("/api/orders", createOrder);
-app.get("/api/orders/my", requireAuth, requireRole("user", "admin", "cashier"), getMyOrders);
-app.get("/api/orders", requireAuth, requireRole("admin", "cashier"), adminListOrders);
-app.patch("/api/orders/:orderId/status", requireAuth, requireRole("admin", "cashier"), updateOrderStatus);
+app.get("/api/orders/my", requireAuth, requireRole("user", "admin", "moderator"), getMyOrders);
+app.get("/api/orders", requireAuth, requireRole("admin", "moderator"), adminListOrders);
+app.patch("/api/orders/:orderId/status", requireAuth, requireRole("admin", "moderator"), updateOrderStatus);
 
 // Shipping
 import { getQuote } from "./routes/shipping";
@@ -170,6 +173,29 @@ app.post("/api/payments/payme/webhook", paymeWebhook);
 app.post("/api/payments/click/webhook", clickWebhook);
 app.get("/api/payments/return/success", returnSuccess);
 app.get("/api/payments/return/fail", returnFail);
+
+// Admin Routes
+app.get("/api/admin/stats", requireAuth, requireRole("admin", "moderator"), getDashboardStats);
+app.get("/api/admin/users", requireAuth, requireRole("admin", "moderator"), getAllUsers);
+app.post("/api/admin/users", requireAuth, requireRole("admin", "moderator"), createUser);
+app.put("/api/admin/users/:id", requireAuth, requireRole("admin", "moderator"), updateUser);
+app.delete("/api/admin/users/:id", requireAuth, requireRole("admin"), deleteUser);
+
+// Admin Product/Category Management
+app.post("/api/admin/products", requireAuth, requireRole("admin", "moderator"), createProduct);
+app.put("/api/admin/products/:id", requireAuth, requireRole("admin", "moderator"), updateProduct);
+app.delete("/api/admin/products/:id", requireAuth, requireRole("admin", "moderator"), deleteProduct);
+app.post("/api/admin/categories", requireAuth, requireRole("admin", "moderator"), createCategory);
+app.put("/api/admin/categories/:id", requireAuth, requireRole("admin", "moderator"), updateCategory);
+app.delete("/api/admin/categories/:id", requireAuth, requireRole("admin", "moderator"), deleteCategory);
+
+// Admin Order Management
+app.get("/api/admin/orders", requireAuth, requireRole("admin", "moderator"), getAllOrders);
+app.put("/api/admin/orders/:id/courier", requireAuth, requireRole("admin", "moderator"), assignCourier);
+
+// Delivery & Tracking
+app.post("/api/delivery/calculate", calculateDelivery);
+app.get("/api/delivery/track/:orderId", trackOrder);
 
 // Telegram notify
 import { notifyTelegram } from "./routes/notify";
@@ -186,4 +212,21 @@ export function createServer() {
   connectDatabase();
   
   return app;
+}
+
+// Start server if this is the main module
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+
+if (isMainModule) {
+  const PORT = process.env.PORT || 8080;
+  
+  connectDatabase().then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
+    });
+  }).catch(error => {
+    console.error('Database connection failed:', error);
+    process.exit(1);
+  });
 }

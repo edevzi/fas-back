@@ -252,13 +252,20 @@ export const requireAuth: RequestHandler = (req, res, next) => {
   }
 };
 
-export function requireRole(...roles: Array<"admin" | "cashier" | "user">): RequestHandler {
+export function requireRole(...roles: Array<"admin" | "moderator" | "user">): RequestHandler {
   return (req, res, next) => {
     const current = (req as any).user as { role?: string } | undefined;
     if (!current?.role) return res.status(403).json({ message: "Forbidden" });
     if (!roles.includes(current.role as any)) return res.status(403).json({ message: "Forbidden" });
     next();
   };
+}
+
+// Helper function to check if user can manage another user
+export function canManageUser(managerRole: string, targetRole: string): boolean {
+  if (managerRole === 'admin') return true; // Admin can manage everyone
+  if (managerRole === 'moderator' && targetRole === 'user') return true; // Moderator can manage users
+  return false;
 }
 
 

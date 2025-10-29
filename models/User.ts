@@ -16,10 +16,13 @@ export interface IUser extends Document {
   name: string;
   password: string;
   phone: string;
-  role: "admin" | "cashier" | "user";
+  role: "admin" | "moderator" | "user";
   addresses: IAddress[];
   wishlist: string[];
   recentlyViewed: string[];
+  isActive: boolean;
+  lastLogin?: Date;
+  createdBy?: string; // ID of the user who created this account
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,10 +42,13 @@ const UserSchema = new Schema<IUser>(
     name: { type: String, required: true },
     password: { type: String, required: true },
     phone: { type: String, required: true, unique: true, index: true },
-    role: { type: String, enum: ["admin", "cashier", "user"], default: "user", index: true },
+    role: { type: String, enum: ["admin", "moderator", "user"], default: "user", index: true },
     addresses: { type: [AddressSchema], default: [] },
     wishlist: { type: [String], default: [] },
-    recentlyViewed: { type: [String], default: [] }
+    recentlyViewed: { type: [String], default: [] },
+    isActive: { type: Boolean, default: true },
+    lastLogin: { type: Date },
+    createdBy: { type: String }
   },
   {
     timestamps: true,

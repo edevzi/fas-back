@@ -1,6 +1,7 @@
 import { RequestHandler } from "express";
 import { Comment } from "../models/Comment";
 import { Product } from "../models/Product";
+import mongoose from "mongoose";
 
 /**
  * @swagger
@@ -168,8 +169,9 @@ const updateProductRating = async (productId: string) => {
     const averageRating = comments.reduce((sum, c) => sum + c.rating, 0) / comments.length;
     const reviewCount = comments.length;
 
+    // Find product by id (string format)
     await Product.updateOne(
-      { _id: productId },
+      { _id: new mongoose.Types.ObjectId(productId) },
       { rating: Math.round(averageRating * 10) / 10, reviewCount }
     );
   } catch (error) {
@@ -197,7 +199,11 @@ const updateProductRating = async (productId: string) => {
 export const markHelpful: RequestHandler = async (req, res) => {
   try {
     const { commentId } = req.params;
-    await Comment.updateOne({ _id: commentId }, { $inc: { helpful: 1 } });
+    
+    await Comment.updateOne(
+      { _id: commentId }, 
+      { $inc: { helpful: 1 } }
+    );
     res.json({ message: "Marked as helpful" });
   } catch (error) {
     console.error("Error marking comment as helpful:", error);
@@ -234,10 +240,28 @@ export const getUserComments: RequestHandler = async (req, res) => {
 
     const comments = await Comment.find({ userId })
       .sort({ createdAt: -1 })
-      .populate('productId', 'slug title images price')
       .lean();
 
-    res.json(comments);
+    // Manually populate product data
+    const commentsWithProducts = await Promise.all(
+      comments.map(async (comment) => {
+        try {
+          const product = await Product.findById(comment.productId)
+            .select('slug title images price')
+            .lean();
+          
+          return {
+            ...comment,
+            productId: product || comment.productId // If product not found, keep original productId
+          };
+        } catch (error) {
+          console.error("Error fetching product for comment:", error);
+          return comment;
+        }
+      })
+    );
+
+    res.json(commentsWithProducts);
   } catch (error) {
     console.error("Error fetching user comments:", error);
     res.status(500).json({ message: "Server error" });

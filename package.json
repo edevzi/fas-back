@@ -9,6 +9,7 @@
     "build": "tsc",
     "start": "node dist/production.mjs",
     "seed": "tsx scripts/seed.ts",
+    "createUsers": "tsx scripts/createTestUsers.ts",
     "test": "jest"
   },
   "dependencies": {

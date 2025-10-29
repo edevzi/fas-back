@@ -1,6 +1,3 @@
-import { Schema, model } from "mongoose";
-
-
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface ICartItem {
@@ -31,13 +28,30 @@ export interface ITotals {
   total: number;
 }
 
+export interface IDelivery {
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+  address: IAddress;
+  estimatedTime?: number; // in minutes
+  courierId?: string;
+  courierName?: string;
+  courierPhone?: string;
+  instructions?: string;
+}
+
 export interface IOrder extends Document {
   id: string;
   userId: string;
   items: ICartItem[];
   totals: ITotals;
-  status: "pending" | "processing" | "in_transit" | "delivered" | "cancelled";
+  status: "pending" | "confirmed" | "preparing" | "ready_for_delivery" | "in_transit" | "delivered" | "cancelled";
   address: IAddress;
+  delivery: IDelivery;
+  paymentStatus: "pending" | "paid" | "failed";
+  paymentMethod?: "cash" | "card" | "payme" | "click";
+  notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -70,6 +84,19 @@ const TotalsSchema = new Schema<ITotals>({
   total: { type: Number, required: true }
 }, { _id: false });
 
+const DeliverySchema = new Schema<IDelivery>({
+  coordinates: {
+    latitude: { type: Number },
+    longitude: { type: Number }
+  },
+  address: { type: AddressSchema, required: true },
+  estimatedTime: { type: Number },
+  courierId: { type: String },
+  courierName: { type: String },
+  courierPhone: { type: String },
+  instructions: { type: String }
+}, { _id: false });
+
 const OrderSchema = new Schema<IOrder>(
   {
     userId: { type: String, required: true, index: true },
@@ -77,16 +104,27 @@ const OrderSchema = new Schema<IOrder>(
     totals: { type: TotalsSchema, required: true },
     status: {
       type: String,
-      enum: ["pending", "processing", "in_transit", "delivered", "cancelled"],
+      enum: ["pending", "confirmed", "preparing", "ready_for_delivery", "in_transit", "delivered", "cancelled"],
       default: "pending",
       index: true
     },
-    address: { type: AddressSchema, required: true }
+    address: { type: AddressSchema, required: true },
+    delivery: { type: DeliverySchema, required: true },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed"],
+      default: "pending"
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["cash", "card", "payme", "click"]
+    },
+    notes: { type: String }
   },
   {
     timestamps: true,
     toJSON: {
-      transform: (_doc, ret) => {
+      transform: (_doc, ret: any) => {
         ret.id = ret._id.toString();
         delete ret._id;
         delete ret.__v;
