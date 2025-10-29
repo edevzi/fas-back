@@ -48,19 +48,22 @@ export const signup: RequestHandler = async (req, res) => {
       return res.status(400).json({ message: "Name, phone and password are required" });
     }
 
-    // Check if phone is valid
-    const phoneRegex = /^\+?998[0-9]{9}$/;
-    if (!phoneRegex.test(phone)) {
+    // Normalize phone to +998XXXXXXXXX and validate
+    const phoneDigits = String(phone || "").replace(/[^0-9]/g, "");
+    const normalized = phoneDigits.startsWith("998") ? phoneDigits : `998${phoneDigits}`;
+    const phoneE164 = `+${normalized.slice(0, 12)}`; // ensure 12 digits (998 + 9)
+    const phoneRegex = /^\+998[0-9]{9}$/;
+    if (!phoneRegex.test(phoneE164)) {
       return res.status(400).json({ message: "Invalid phone number format. Use +998XXXXXXXXX" });
     }
 
-    const existing = await User.findOne({ phone });
+    const existing = await User.findOne({ phone: phoneE164 });
     if (existing) {
       return res.status(409).json({ message: "User already exists with this phone number" });
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, password: hashed, phone, role });
+    const user = await User.create({ name, password: hashed, phone: phoneE164, role });
 
     const token = signToken({ id: user.id, role: user.role });
     res.status(201).json({ token, user: user.toJSON() });
@@ -103,16 +106,19 @@ export const login: RequestHandler = async (req, res) => {
       return res.status(400).json({ message: "Phone and password are required" });
     }
 
-    // Check if phone is valid
-    const phoneRegex = /^\+?998[0-9]{9}$/;
-    if (!phoneRegex.test(phone)) {
+    // Normalize phone to +998XXXXXXXXX
+    const phoneDigits = String(phone || "").replace(/[^0-9]/g, "");
+    const normalized = phoneDigits.startsWith("998") ? phoneDigits : `998${phoneDigits}`;
+    const phoneE164 = `+${normalized.slice(0, 12)}`;
+    const phoneRegex = /^\+998[0-9]{9}$/;
+    if (!phoneRegex.test(phoneE164)) {
       return res.status(400).json({ message: "Invalid phone number format. Use +998XXXXXXXXX" });
     }
-    if (!phone || !password) {
+    if (!phoneE164 || !password) {
       return res.status(400).json({ message: "Phone and password are required" });
     }
 
-    const user = await User.findOne({ phone });
+    const user = await User.findOne({ phone: phoneE164 });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
