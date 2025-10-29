@@ -188,10 +188,10 @@ app.post("/api/auth/login", login);
 app.get("/api/auth/me", me);
 
 // Orders
-app.post("/api/orders", requireAuth, requireRole("user", "admin", "cashier"), createOrder);
-app.get("/api/orders/my", requireAuth, requireRole("user", "admin", "cashier"), getMyOrders);
-app.get("/api/orders", requireAuth, requireRole("admin", "cashier"), adminListOrders);
-app.patch("/api/orders/:orderId/status", requireAuth, requireRole("admin", "cashier"), updateOrderStatus);
+app.post("/api/orders", requireAuth, requireRole("user", "admin", "moderator"), createOrder);
+app.get("/api/orders/my", requireAuth, requireRole("user", "admin", "moderator"), getMyOrders);
+app.get("/api/orders", requireAuth, requireRole("admin", "moderator"), adminListOrders);
+app.patch("/api/orders/:orderId/status", requireAuth, requireRole("admin", "moderator"), updateOrderStatus);
 
 // Swagger JSON endpoint
 app.get("/api-docs.json", (_req, res) => {
