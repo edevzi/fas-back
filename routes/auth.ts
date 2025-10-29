@@ -44,6 +44,7 @@ export const signup: RequestHandler = async (req, res) => {
   try {
     const { name, phone, password, role } = req.body || {};
 
+    // Input validation
     if (!name || !phone || !password) {
       return res.status(400).json({ message: "Name, phone and password are required" });
     }
@@ -56,37 +57,84 @@ export const signup: RequestHandler = async (req, res) => {
 
     // Normalize phone to +998XXXXXXXXX and validate
     const phoneDigits = String(phone || "").replace(/[^0-9]/g, "");
+    if (phoneDigits.length < 9) {
+      return res.status(400).json({ message: "Invalid phone number. Must have at least 9 digits after 998" });
+    }
     const normalized = phoneDigits.startsWith("998") ? phoneDigits : `998${phoneDigits}`;
-    const phoneE164 = `+${normalized.slice(0, 12)}`; // ensure 12 digits (998 + 9)
+    if (normalized.length !== 12) {
+      return res.status(400).json({ message: "Invalid phone number format. Expected 12 digits (998 + 9 digits)" });
+    }
+    const phoneE164 = `+${normalized}`;
     const phoneRegex = /^\+998[0-9]{9}$/;
     if (!phoneRegex.test(phoneE164)) {
       return res.status(400).json({ message: "Invalid phone number format. Use +998XXXXXXXXX" });
     }
 
-    const existing = await User.findOne({ phone: phoneE164 });
+    // Check if user exists
+    let existing;
+    try {
+      existing = await User.findOne({ phone: phoneE164 });
+    } catch (dbErr: any) {
+      console.error("Database error checking existing user:", dbErr);
+      return res.status(500).json({ message: "Database connection error. Please try again." });
+    }
+    
     if (existing) {
       return res.status(409).json({ message: "User already exists with this phone number" });
     }
 
-    const hashed = await bcrypt.hash(password, 10);
+    // Hash password
+    let hashed;
     try {
-      const user = await User.create({ name, password: hashed, phone: phoneE164, role });
-      const token = signToken({ id: user.id, role: user.role });
+      hashed = await bcrypt.hash(password, 10);
+    } catch (hashErr: any) {
+      console.error("Password hashing error:", hashErr);
+      return res.status(500).json({ message: "Server error during password encryption" });
+    }
+
+    // Create user
+    try {
+      const user = await User.create({ 
+        name: String(name).trim(), 
+        password: hashed, 
+        phone: phoneE164, 
+        role: role || "user" 
+      });
+      
+      // Generate token
+      let token;
+      try {
+        token = signToken({ id: user.id, role: user.role });
+      } catch (tokenErr: any) {
+        console.error("Token generation error:", tokenErr);
+        return res.status(500).json({ message: "Server error during token generation" });
+      }
+      
       return res.status(201).json({ token, user: user.toJSON() });
-    } catch (err: any) {
-      // Handle duplicate key error for unique phone
-      if (err && err.code === 11000 && err.keyPattern && err.keyPattern.phone) {
+    } catch (createErr: any) {
+      // Handle duplicate key error for unique phone (race condition)
+      if (createErr && createErr.code === 11000 && createErr.keyPattern && createErr.keyPattern.phone) {
         return res.status(409).json({ message: "User already exists with this phone number" });
       }
-      if (err?.name === 'ValidationError') {
-        return res.status(400).json({ message: err.message || 'Invalid input' });
+      // Handle validation errors
+      if (createErr?.name === 'ValidationError') {
+        const validationMsg = createErr.message || 'Invalid input data';
+        return res.status(400).json({ message: validationMsg });
       }
-      console.error('Signup error (unexpected):', err);
-      return res.status(500).json({ message: 'Server error' });
+      // Unexpected error
+      console.error('Signup user creation error:', createErr);
+      console.error('Error details:', {
+        name: createErr?.name,
+        code: createErr?.code,
+        message: createErr?.message,
+        stack: createErr?.stack
+      });
+      return res.status(500).json({ message: "Server error during user creation" });
     }
-  } catch (error) {
-    console.error("Signup error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (error: any) {
+    console.error("Signup unexpected error:", error);
+    console.error("Error stack:", error?.stack);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
