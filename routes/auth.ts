@@ -239,13 +239,25 @@ export const me: RequestHandler = async (req, res) => {
   }
 };
 
-export const requireAuth: RequestHandler = (req, res, next) => {
+export const requireAuth: RequestHandler = async (req, res, next) => {
   const auth = req.headers.authorization || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
   if (!token) return res.status(401).json({ message: "Missing token" });
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as any;
-    (req as any).user = decoded;
+    
+    // User ma'lumotlarini database'dan olish
+    const user = await User.findById(decoded.id).select('-password');
+    if (!user || !user.isActive) {
+      return res.status(401).json({ message: 'Invalid or inactive user' });
+    }
+
+    (req as any).user = {
+      id: user.id,
+      role: user.role,
+      name: user.name,
+      phone: user.phone
+    };
     next();
   } catch (e) {
     return res.status(401).json({ message: "Invalid token" });

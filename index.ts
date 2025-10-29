@@ -55,7 +55,7 @@ const swaggerOptions = {
           description: "Production server"
         },
         {
-          url: "http://localhost:8080/api",
+          url: "http://localhost:3000/api",
           description: "Development server"
         }
       ]
@@ -190,7 +190,7 @@ app.get("/api/payments/return/success", returnSuccess);
 app.get("/api/payments/return/fail", returnFail);
 
 // Admin Routes
-app.get("/api/admin/stats", requireAuth, requireRole("admin", "moderator"), auditLogger('dashboard', 'view'), getDashboardStats);
+app.get("/api/admin/stats", requireAuth, requireRole("admin", "moderator"), getDashboardStats);
 app.get("/api/admin/users", requireAuth, requireRole("admin", "moderator"), auditLogger('users', 'list'), getAllUsers);
 app.post("/api/admin/users", requireAuth, requireRole("admin", "moderator"), auditLogger('users', 'create'), createUser);
 app.put("/api/admin/users/:id", requireAuth, requireRole("admin", "moderator"), auditLogger('users', 'update'), updateUser);

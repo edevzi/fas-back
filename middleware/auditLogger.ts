@@ -14,11 +14,11 @@ export const auditLogger = (resource: string, action?: string) => {
       const responseTime = endTime - startTime;
 
       // Audit log yozish
-      if (req.user) {
+      if (req.user && req.user.id) {
         const logData = {
           userId: req.user.id,
-          userName: req.user.name,
-          userRole: req.user.role,
+          userName: req.user.name || 'Unknown',
+          userRole: req.user.role || 'unknown',
           action: action || req.method.toLowerCase(),
           resource: resource,
           resourceId: req.params.id || req.params.userId || req.params.productId || req.body.id,
