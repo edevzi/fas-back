@@ -12,6 +12,21 @@ import { createOrder, getMyOrders, adminListOrders, updateOrderStatus } from "./
 import { getAllUsers, createUser, updateUser, deleteUser, getDashboardStats } from "./routes/admin";
 import { createProduct, updateProduct, deleteProduct, createCategory, updateCategory, deleteCategory } from "./routes/adminProducts";
 import { getAllOrders, assignCourier, calculateDelivery, trackOrder } from "./routes/delivery";
+import { 
+  getAuditLogs, 
+  getUserActivityLogs, 
+  getAdvancedStats, 
+  getSystemHealth,
+  toggleUserStatus,
+  changeUserRole
+} from "./routes/adminSystem";
+import { 
+  authenticateToken, 
+  requireAdmin, 
+  requireAdminOrModerator, 
+  checkPermission 
+} from "./middleware/permissions";
+import { auditLogger } from "./middleware/auditLogger";
 import { User } from "./models/User";
 
 const app = express();
@@ -175,11 +190,21 @@ app.get("/api/payments/return/success", returnSuccess);
 app.get("/api/payments/return/fail", returnFail);
 
 // Admin Routes
-app.get("/api/admin/stats", requireAuth, requireRole("admin", "moderator"), getDashboardStats);
-app.get("/api/admin/users", requireAuth, requireRole("admin", "moderator"), getAllUsers);
-app.post("/api/admin/users", requireAuth, requireRole("admin", "moderator"), createUser);
-app.put("/api/admin/users/:id", requireAuth, requireRole("admin", "moderator"), updateUser);
-app.delete("/api/admin/users/:id", requireAuth, requireRole("admin"), deleteUser);
+app.get("/api/admin/stats", requireAuth, requireRole("admin", "moderator"), auditLogger('dashboard', 'view'), getDashboardStats);
+app.get("/api/admin/users", requireAuth, requireRole("admin", "moderator"), auditLogger('users', 'list'), getAllUsers);
+app.post("/api/admin/users", requireAuth, requireRole("admin", "moderator"), auditLogger('users', 'create'), createUser);
+app.put("/api/admin/users/:id", requireAuth, requireRole("admin", "moderator"), auditLogger('users', 'update'), updateUser);
+app.delete("/api/admin/users/:id", requireAuth, requireRole("admin"), auditLogger('users', 'delete'), deleteUser);
+
+// Extended Admin User Management
+app.put("/api/admin/users/:userId/toggle-status", authenticateToken, requireAdmin, auditLogger('users', 'toggle_status'), toggleUserStatus);
+app.put("/api/admin/users/:userId/change-role", authenticateToken, requireAdmin, auditLogger('users', 'change_role'), changeUserRole);
+
+// Audit Logs & System Management
+app.get("/api/admin/audit-logs", authenticateToken, requireAdmin, auditLogger('audit_logs', 'view'), getAuditLogs);
+app.get("/api/admin/user/:userId/activity", authenticateToken, requireAdminOrModerator, auditLogger('user_activity', 'view'), getUserActivityLogs);
+app.get("/api/admin/dashboard/advanced", authenticateToken, requireAdminOrModerator, auditLogger('advanced_stats', 'view'), getAdvancedStats);
+app.get("/api/admin/system/health", authenticateToken, requireAdmin, auditLogger('system_health', 'view'), getSystemHealth);
 
 // Admin Product/Category Management
 app.post("/api/admin/products", requireAuth, requireRole("admin", "moderator"), createProduct);

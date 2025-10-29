@@ -3,6 +3,9 @@ import { User } from "../models/User";
 import { Product } from "../models/Product";
 import { Order } from "../models/Order";
 import { Comment } from "../models/Comment";
+import { AuditLog, logAction } from "../models/AuditLog";
+import { AuthenticatedRequest, checkPermission } from "../middleware/permissions";
+import { auditLogger, logUserAction } from "../middleware/auditLogger";
 import bcrypt from "bcryptjs";
 
 // User Management Routes
@@ -35,15 +38,24 @@ import bcrypt from "bcryptjs";
  *       200:
  *         description: List of users
  */
-export const getAllUsers: RequestHandler = async (req, res) => {
+export const getAllUsers: RequestHandler = async (req: AuthenticatedRequest, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const role = req.query.role as string;
+    const search = req.query.search as string;
+    const isActive = req.query.isActive as string;
     const skip = (page - 1) * limit;
 
     let query: any = {};
     if (role) query.role = role;
+    if (isActive !== undefined) query.isActive = isActive === 'true';
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
+      ];
+    }
 
     const users = await User.find(query)
       .select('-password')
