@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IComment extends Document {
   id: string;
-  productId: string;
+  productId: mongoose.Types.ObjectId | string;
   userId: string;
   userName: string;
   userAvatar?: string;
@@ -22,7 +22,7 @@ export interface IComment extends Document {
 
 const CommentSchema = new Schema<IComment>(
   {
-    productId: { type: String, required: true, index: true },
+    productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true, index: true },
     userId: { type: String, required: true, index: true },
     userName: { type: String, required: true },
     userAvatar: { type: String },
@@ -39,7 +39,7 @@ const CommentSchema = new Schema<IComment>(
   {
     timestamps: true,
     toJSON: {
-      transform: (_doc, ret) => {
+      transform: (_doc, ret: any) => {
         ret.id = ret._id.toString();
         delete ret._id;
         delete ret.__v;

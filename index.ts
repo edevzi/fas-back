@@ -6,7 +6,7 @@ import swaggerUi from "swagger-ui-express";
 import connectDatabase from "./config/database";
 import { getProducts, getProductBySlug } from "./routes/products";
 import { getCategories, getCategoryBySlug } from "./routes/categories";
-import { getProductComments, createComment, markHelpful } from "./routes/comments";
+import { getProductComments, createComment, markHelpful, getUserComments } from "./routes/comments";
 import { signup, login, me, requireAuth, requireRole } from "./routes/auth";
 import { createOrder, getMyOrders, adminListOrders, updateOrderStatus } from "./routes/orders";
 import { User } from "./models/User";
@@ -143,6 +143,7 @@ app.get("/api/categories/:slug", getCategoryBySlug);
 app.get("/api/products/:productId/comments", getProductComments);
 app.post("/api/products/:productId/comments", createComment);
 app.post("/api/comments/:commentId/helpful", markHelpful);
+app.get("/api/users/:userId/comments", getUserComments);
 
 // Auth
 app.post("/api/auth/signup", signup);

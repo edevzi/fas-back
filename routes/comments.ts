@@ -205,3 +205,42 @@ export const markHelpful: RequestHandler = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/users/{userId}/comments:
+ *   get:
+ *     summary: Get user comments
+ *     tags: [Comments]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: List of user comments
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Comment'
+ */
+export const getUserComments: RequestHandler = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const comments = await Comment.find({ userId })
+      .sort({ createdAt: -1 })
+      .populate('productId', 'slug title images price')
+      .lean();
+
+    res.json(comments);
+  } catch (error) {
+    console.error("Error fetching user comments:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
