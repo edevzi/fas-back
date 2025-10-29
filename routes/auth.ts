@@ -47,6 +47,12 @@ export const signup: RequestHandler = async (req, res) => {
     if (!name || !phone || !password) {
       return res.status(400).json({ message: "Name, phone and password are required" });
     }
+    if (String(name).trim().length < 2) {
+      return res.status(400).json({ message: "Name must be at least 2 characters" });
+    }
+    if (String(password).length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
 
     // Normalize phone to +998XXXXXXXXX and validate
     const phoneDigits = String(phone || "").replace(/[^0-9]/g, "");
@@ -63,10 +69,21 @@ export const signup: RequestHandler = async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, password: hashed, phone: phoneE164, role });
-
-    const token = signToken({ id: user.id, role: user.role });
-    res.status(201).json({ token, user: user.toJSON() });
+    try {
+      const user = await User.create({ name, password: hashed, phone: phoneE164, role });
+      const token = signToken({ id: user.id, role: user.role });
+      return res.status(201).json({ token, user: user.toJSON() });
+    } catch (err: any) {
+      // Handle duplicate key error for unique phone
+      if (err && err.code === 11000 && err.keyPattern && err.keyPattern.phone) {
+        return res.status(409).json({ message: "User already exists with this phone number" });
+      }
+      if (err?.name === 'ValidationError') {
+        return res.status(400).json({ message: err.message || 'Invalid input' });
+      }
+      console.error('Signup error (unexpected):', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
   } catch (error) {
     console.error("Signup error:", error);
     res.status(500).json({ message: "Server error" });
