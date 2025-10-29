@@ -129,7 +129,11 @@ export const signup: RequestHandler = async (req, res) => {
         message: createErr?.message,
         stack: createErr?.stack
       });
-      return res.status(500).json({ message: "Server error during user creation" });
+      return res.status(500).json({ 
+        message: "Server error during user creation",
+        code: createErr?.code,
+        error: createErr?.message
+      });
     }
   } catch (error: any) {
     console.error("Signup unexpected error:", error);
