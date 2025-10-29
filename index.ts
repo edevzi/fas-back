@@ -9,6 +9,7 @@ import { getCategories, getCategoryBySlug } from "./routes/categories";
 import { getProductComments, createComment, markHelpful } from "./routes/comments";
 import { signup, login, me, requireAuth, requireRole } from "./routes/auth";
 import { createOrder, getMyOrders, adminListOrders, updateOrderStatus } from "./routes/orders";
+import { User } from "./models/User";
 
 const app = express();
 
@@ -115,6 +116,14 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Attempt to drop legacy unique email index if present (from older schema)
+User.collection.indexes().then((idx) => {
+  const hasEmail = idx.some((i: any) => i.name === 'email_1');
+  if (hasEmail) {
+    User.collection.dropIndex('email_1').catch(() => {});
+  }
+}).catch(() => {});
 
 // Health check
 app.get("/api/ping", (_req, res) => {
