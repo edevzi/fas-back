@@ -14,10 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // Middleware
-app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:5173",
-  credentials: true
-}));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -54,6 +51,34 @@ const swaggerOptions = {
         }
       },
       schemas: {
+        User: {
+          type: "object",
+          required: ["id", "name", "phone"],
+          properties: {
+            id: { type: "string" },
+            name: { type: "string" },
+            phone: { type: "string" },
+            role: { type: "string", enum: ["admin", "cashier", "user"] },
+            addresses: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  fullName: { type: "string" },
+                  phone: { type: "string" },
+                  country: { type: "string" },
+                  city: { type: "string" },
+                  street: { type: "string" },
+                  zip: { type: "string" },
+                  isDefault: { type: "boolean" }
+                }
+              }
+            },
+            wishlist: { type: "array", items: { type: "string" } },
+            recentlyViewed: { type: "array", items: { type: "string" } }
+          }
+        },
         Product: {
           type: "object",
           required: ["slug", "title", "gender", "ageRange", "categorySlug", "price", "available", "description", "material", "care"],

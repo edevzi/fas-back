@@ -14,7 +14,6 @@ export interface IAddress {
 export interface IUser extends Document {
   id: string;
   name: string;
-  email: string;
   password: string;
   phone: string;
   role: "admin" | "cashier" | "user";
@@ -38,9 +37,8 @@ const AddressSchema = new Schema<IAddress>({
 const UserSchema = new Schema<IUser>(
   {
     name: { type: String, required: true },
-    email: { type: String, required: true, unique: true, lowercase: true, index: true },
     password: { type: String, required: true },
-    phone: { type: String },
+    phone: { type: String, required: true, unique: true, index: true },
     role: { type: String, enum: ["admin", "cashier", "user"], default: "user", index: true },
     addresses: { type: [AddressSchema], default: [] },
     wishlist: { type: [String], default: [] },
@@ -49,11 +47,11 @@ const UserSchema = new Schema<IUser>(
   {
     timestamps: true,
     toJSON: {
-      transform: (_doc, ret) => {
-        ret.id = ret._id.toString();
-        delete ret._id;
-        delete ret.__v;
-        delete ret.password;
+      transform: (_doc, ret: any) => {
+        ret.id = ret._id?.toString();
+        delete (ret as any)._id;
+        delete (ret as any).__v;
+        delete (ret as any).password;
         return ret;
       }
     }

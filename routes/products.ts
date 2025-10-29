@@ -133,8 +133,60 @@ export const getProducts: RequestHandler = async (req, res) => {
       limit: limitNum
     });
   } catch (error) {
-    console.error("Error fetching products:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error fetching products (DB)", error);
+    // Fallback to mock data to keep dev UX working if DB is unavailable
+    try {
+      const fs = await import("fs");
+      const path = await import("path");
+      const { fileURLToPath } = await import("url");
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
+      const filePath = path.resolve(__dirname, "../../public/mocks/products.json");
+      const raw = fs.readFileSync(filePath, "utf-8");
+      const all = JSON.parse(raw) as any[];
+
+      // Basic filtering/pagination to mimic API
+      const {
+        search,
+        gender,
+        age,
+        category,
+        minPrice,
+        maxPrice,
+        available,
+        page = "1",
+        limit = "20"
+      } = req.query as Record<string, string>;
+
+      let filtered = all;
+      if (search) {
+        const q = String(search).toLowerCase();
+        filtered = filtered.filter(p => (
+          String(p.title).toLowerCase().includes(q) ||
+          String(p.description).toLowerCase().includes(q) ||
+          String(p.material).toLowerCase().includes(q)
+        ));
+      }
+      if (gender) filtered = filtered.filter(p => p.gender === gender);
+      if (age) filtered = filtered.filter(p => p.ageRange === age);
+      if (category) filtered = filtered.filter(p => p.categorySlug === category);
+      if (available !== undefined) filtered = filtered.filter(p => Boolean(p.available) === (String(available) === "true"));
+      if (minPrice) filtered = filtered.filter(p => Number(p.price) >= Number(minPrice));
+      if (maxPrice) filtered = filtered.filter(p => Number(p.price) <= Number(maxPrice));
+
+      const pageNum = parseInt(String(page));
+      const limitNum = parseInt(String(limit));
+      const start = (pageNum - 1) * limitNum;
+      const end = start + limitNum;
+
+      const products = filtered.slice(start, end);
+      const total = filtered.length;
+
+      return res.json({ products, total, page: pageNum, limit: limitNum });
+    } catch (fallbackErr) {
+      console.error("Error serving mock products fallback", fallbackErr);
+      res.status(500).json({ message: "Server error" });
+    }
   }
 };
 
@@ -172,8 +224,24 @@ export const getProductBySlug: RequestHandler = async (req, res) => {
 
     res.json(product);
   } catch (error) {
-    console.error("Error fetching product:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error fetching product (DB)", error);
+    // Fallback to mock data
+    try {
+      const fs = await import("fs");
+      const path = await import("path");
+      const { fileURLToPath } = await import("url");
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
+      const filePath = path.resolve(__dirname, "../../public/mocks/products.json");
+      const raw = fs.readFileSync(filePath, "utf-8");
+      const all = JSON.parse(raw) as any[];
+      const one = all.find(p => p.slug === req.params.slug);
+      if (!one) return res.status(404).json({ message: "Product not found" });
+      return res.json(one);
+    } catch (fallbackErr) {
+      console.error("Error serving mock product fallback", fallbackErr);
+      res.status(500).json({ message: "Server error" });
+    }
   }
 };
 

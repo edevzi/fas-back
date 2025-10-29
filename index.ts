@@ -12,18 +12,8 @@ import { createOrder, getMyOrders, adminListOrders, updateOrderStatus } from "./
 
 const app = express();
 
-app.use(cors({
-  origin: process.env.NODE_ENV === "production"
-    ? [
-        process.env.CLIENT_URL || "http://localhost:8080",
-        "https://faskids.shop",
-        "https://www.faskids.shop",
-        "http://localhost:5173",
-        "http://localhost:3000"
-      ]
-    : true,
-  credentials: true
-}));
+// Permissive CORS: allow all origins (reflect request origin) and credentials
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -145,6 +135,8 @@ app.get("/api/products/:productId/comments", getProductComments);
 app.post("/api/products/:productId/comments", createComment);
 app.post("/api/comments/:commentId/helpful", markHelpful);
 
+// Auth
+app.post("/api/auth/signup", signup);
 // Auth
 app.post("/api/auth/signup", signup);
 app.post("/api/auth/login", login);

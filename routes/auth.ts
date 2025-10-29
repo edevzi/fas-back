@@ -22,15 +22,14 @@ function signToken(payload: object) {
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, email, password]
+ *             required: [name, phone, password]
  *             properties:
  *               name:
  *                 type: string
- *               email:
- *                 type: string
- *               password:
- *                 type: string
  *               phone:
+ *                 type: string
+ *                 description: "+998XXXXXXXXX format"
+ *               password:
  *                 type: string
  *               role:
  *                 type: string
@@ -43,19 +42,25 @@ function signToken(payload: object) {
  */
 export const signup: RequestHandler = async (req, res) => {
   try {
-    const { name, email, password, phone, role } = req.body || {};
+    const { name, phone, password, role } = req.body || {};
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "Name, email and password are required" });
+    if (!name || !phone || !password) {
+      return res.status(400).json({ message: "Name, phone and password are required" });
     }
 
-    const existing = await User.findOne({ email });
+    // Check if phone is valid
+    const phoneRegex = /^\+?998[0-9]{9}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({ message: "Invalid phone number format. Use +998XXXXXXXXX" });
+    }
+
+    const existing = await User.findOne({ phone });
     if (existing) {
-      return res.status(409).json({ message: "User already exists" });
+      return res.status(409).json({ message: "User already exists with this phone number" });
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashed, phone, role });
+    const user = await User.create({ name, password: hashed, phone, role });
 
     const token = signToken({ id: user.id, role: user.role });
     res.status(201).json({ token, user: user.toJSON() });
@@ -69,7 +74,7 @@ export const signup: RequestHandler = async (req, res) => {
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: Login with email and password
+ *     summary: Login with phone and password
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -77,10 +82,11 @@ export const signup: RequestHandler = async (req, res) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required: [email, password]
+ *             required: [phone, password]
  *             properties:
- *               email:
+ *               phone:
  *                 type: string
+ *                 description: "+998XXXXXXXXX format"
  *               password:
  *                 type: string
  *     responses:
@@ -91,12 +97,22 @@ export const signup: RequestHandler = async (req, res) => {
  */
 export const login: RequestHandler = async (req, res) => {
   try {
-    const { email, password } = req.body || {};
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+    const { phone, password } = req.body || {};
+    
+    if (!phone || !password) {
+      return res.status(400).json({ message: "Phone and password are required" });
     }
 
-    const user = await User.findOne({ email });
+    // Check if phone is valid
+    const phoneRegex = /^\+?998[0-9]{9}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({ message: "Invalid phone number format. Use +998XXXXXXXXX" });
+    }
+    if (!phone || !password) {
+      return res.status(400).json({ message: "Phone and password are required" });
+    }
+
+    const user = await User.findOne({ phone });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
